@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>[gsap/threejs/inertia] ❍ Audio-Reactive Maze Visualizer</title>
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
     <style>
         /* Copied and adapted from visualizer's style.css and lemazeashbackup.html internal styles */
         @import url("https://fonts.cdnfonts.com/css/thegoodmonolith");
@@ -280,16 +281,12 @@
             top: 20px;
             left: 20px;
         }
-        #maze-controls-panel .control-group input[type="number"] { width: 60px; text-align: right; }
-        #maze-controls-panel .control-group { display: flex; justify-content: space-between; align-items: center; }
-
 
         /* Anomaly Metrics Panels (from visualizer) */
         .data-panel { width: 280px; } /* Consistent width */
         #anomaly-metrics-left { top: 20px; left: calc(20px + 280px + 20px); /* Position next to maze controls */ }
         #anomaly-metrics-right { top: 20px; right: 20px; }
 
-        .data-panel-title { /* Already styled via .panel-header-title */ }
         .data-readouts { margin-top: 0.5rem; }
         .data-row { display: flex; justify-content: space-between; margin-bottom: 0.25rem; font-size: 0.7rem; }
         .data-label { color: var(--text-secondary); }
@@ -303,7 +300,8 @@
         /* Anomaly Controls / Maze Dynamics Panel (New / From Visualizer) */
         #dynamic-controls-panel {
             width: 280px;
-            top: calc(20px + 200px + 20px); /* Position below left metrics or maze controls */
+            /* FIX: Positioned below the Maze Config panel to avoid overlap */
+            top: calc(20px + 390px + 20px); 
             left: 20px;
         }
 
@@ -313,6 +311,7 @@
           bottom: 20px;
           width: 450px; /* Adjusted width */
           height: 140px; /* Adjusted height */
+
         }
         .terminal-header { /* Combined with panel-header-title and panel-handle */
             display: flex;
@@ -365,7 +364,6 @@
         .demo-track-btn { padding: 0.4rem 0.6rem; font-size: 0.65rem; } /* Uses .btn styling */
         .demo-track-btn.active { background: var(--accent-primary); color: var(--bg-color); border-color: var(--accent-primary); }
 
-
         /* Loading Overlay (from visualizer) */
         .loading-overlay {
           position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -373,7 +371,7 @@
           z-index: 1000; transition: opacity 0.5s ease-out;
         }
         .loading-container { display: flex; flex-direction: column; align-items: center; }
-        .preloader-canvas-container { width: 150px; height: 150px; position: relative; } /* For preloader canvas */
+        .preloader-canvas-container { width: 150px; height: 150px; position: relative; }
         .preloader-canvas { width: 100%; height: 100%; }
         .loading-text { margin-top: 1rem; color: var(--accent-primary); letter-spacing: 1.5px; font-size: 0.8rem; }
 
@@ -386,13 +384,6 @@
           z-index: 1001; pointer-events: none;
         }
         .notification.show { opacity: 1; top: 30px; }
-
-        /* Floating Particles (placeholder if needed, visualizer uses JS to create these) */
-        .floating-particles { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:4; }
-        .particle { /* styled by JS */ }
-        
-        /* Original maze UI panel specific styles if any - mostly covered by .ui-panel now */
-        #ui-panel.collapsed #ui-content { display: none; } /* Simple collapse */
 
     </style>
 </head>
@@ -423,7 +414,7 @@
     <div class="interface-container">
       <div class="header">
         <div class="header-item">MAZE VISUALIZER MK.II</div>
-        <div class="header-item">SYS.AUDIO.REACTIVE.ENGINE<br />v0.9.beta</div>
+        <div class="header-item">SYS.AUDIO.REACTIVE.ENGINE<br />v1.0.release</div>
         <div class="header-item" id="timestamp">TIME: 00:00:00</div>
       </div>
 
@@ -440,23 +431,36 @@
     <div class="ui-panel" id="maze-controls-panel">
         <div class="panel-header-title">Maze Configuration</div>
         <span class="panel-handle" id="maze-controls-panel-handle">⋮⋮</span>
-        <div id="ui-content">
-            <div class="control-group">
-                <label for="mazeWidth">Width:</label>
-                <input type="number" id="mazeWidth" value="12" min="3" max="50">
-            </div>
-            <div class="control-group">
-                <label for="mazeHeight">Height:</label>
-                <input type="number" id="mazeHeight" value="12" min="3" max="50">
-            </div>
-            <div class="control-group">
-                <label for="cellSize">Cell Size:</label>
-                <input type="number" id="cellSize" value="10" min="1" max="30">
-            </div>
-             <div class="control-group">
-                <label for="wallHeight">Wall Height:</label>
-                <input type="number" id="wallHeight" value="8" min="1" max="20">
-            </div>
+<div id="ui-content">
+    <div class="control-group">
+        <div class="control-row">
+            <label for="mazeWidth" class="control-label">Width:</label>
+            <span class="control-value" id="mazeWidth-value">35</span>
+        </div>
+        <input type="range" id="mazeWidth" value="35" min="4" max="50" step="2" class="slider">
+    </div>
+    <div class="control-group">
+        <div class="control-row">
+            <label for="mazeHeight" class="control-label">Height:</label>
+            <span class="control-value" id="mazeHeight-value">35</span>
+        </div>
+        <input type="range" id="mazeHeight" value="35" min="4" max="50" step="2" class="slider">
+    </div>
+    <div class="control-group">
+        <div class="control-row">
+            <label for="cellSize" class="control-label">Cell Size:</label>
+            <span class="control-value" id="cellSize-value">8</span>
+        </div>
+        <input type="range" id="cellSize" value="8" min="2" max="30" step="1" class="slider">
+    </div>
+    <div class="control-group">
+        <div class="control-row">
+            <label for="wallHeight" class="control-label">Wall Height:</label>
+            <span class="control-value" id="wallHeight-value">2</span>
+        </div>
+        <input type="range" id="wallHeight" value="2" min="1" max="20" step="1" class="slider">
+    </div>
+</div>
             <div class="button-group">
                 <button id="generateBtn" class="btn">Generate Maze</button>
                 <button id="solveBtn" class="btn" disabled>Solve Maze</button>
@@ -468,9 +472,8 @@
             <hr style="border: 0; border-top: 1px solid var(--panel-border); margin: 10px 0;">
             <div class="button-group">
                 <button id="frameViewBtn" class="btn secondary">Frame View</button>
-                <button id="clearBtn" class="btn secondary" style="background-color: #dc3545;">Clear</button>
+                <button id="clearBtn" class="btn secondary" style="background-color: var(--accent-secondary);">Clear</button>
             </div>
-            <!-- Export buttons can be added here if needed -->
         </div>
     </div>
 
@@ -555,7 +558,7 @@
             <input type="file" id="audio-file-input" class="audio-file-input" accept="audio/*">
             <button class="btn audio-file-btn" id="file-btn">UPLOAD AUDIO FILE</button>
             <div class="audio-file-label" id="file-label">NO FILE SELECTED</div>
-            <audio id="audio-player" class="audio-player" crossorigin="anonymous" controls></audio> <!-- Added controls for debugging -->
+            <audio id="audio-player" class="audio-player" crossorigin="anonymous" controls></audio>
              <div class="control-group">
                 <div class="control-row"><label class="control-label">AUDIO SENSITIVITY</label><span class="control-value" id="audio-sensitivity-value">5.0</span></div>
                 <input type="range" min="1" max="10" value="5" step="0.1" class="slider" id="audio-sensitivity-slider">
@@ -575,22 +578,45 @@
             }
         }
     </script>
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    gsap.registerPlugin(Draggable, InertiaPlugin);
 
+    const panels = [
+      "#maze-controls-panel",
+      "#anomaly-metrics-left",
+      "#anomaly-metrics-right",
+      "#dynamic-controls-panel",
+      "#terminal-panel",
+      "#spectrum-analyzer-panel"
+    ];
+
+    panels.forEach(selector => {
+      Draggable.create(selector, {
+        type: "x,y",
+        edgeResistance: 0.85,
+        inertia: true,
+        bounds: document.body,
+        allowContextMenu: true
+      });
+    });
+  });
+</script>
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js'; // If export is still needed
 
         // --- GLOBAL STATE ---
         let scene, camera, renderer, controls, clock;
         let mazeGroup = new THREE.Group();
         let pathObject = null;
-        const mazeData = { grid: null, start: null, end: null, solutionPath: null, wallMeshes: [] };
+        const mazeData = { grid: null, start: null, end: null, solutionPath: null, wallMeshes: [], floorMesh: null };
         
         let audioContext = null, audioAnalyser = null, audioSource = null;
-        let audioDataArray, frequencyDataArray; // Renamed from visualizer's audioData, frequencyData
+        let audioDataArray, frequencyDataArray;
         let isAudioInitialized = false, isAudioPlaying = false, audioContextStarted = false;
         let currentAudioElement = null;
+        let isMazeGeneratedForSong = false;
 
         let wallDeformationAmount = 0.0, deformationSpeed = 0.1, colorIntensity = 0.5;
         let audioReactivityFactor = 1.0, audioSensitivityFactor = 5.0;
@@ -611,6 +637,11 @@
         const mazeHeightInput = document.getElementById('mazeHeight');
         const cellSizeInput = document.getElementById('cellSize');
         const wallHeightInput = document.getElementById('wallHeight');
+        const mazeWidthValue = document.getElementById('mazeWidth-value');
+        const mazeHeightValue = document.getElementById('mazeHeight-value');
+        const cellSizeValue = document.getElementById('cellSize-value');
+        const wallHeightValue = document.getElementById('wallHeight-value');
+
 
         // Dynamic Controls
         const wallDeformationSlider = document.getElementById('wall-deformation-slider');
@@ -627,7 +658,7 @@
         const fileBtn = document.getElementById('file-btn');
         const fileLabel = document.getElementById('file-label');
         const demoTrackBtns = document.querySelectorAll('.demo-track-btn');
-        currentAudioElement = document.getElementById('audio-player'); // Use existing
+        currentAudioElement = document.getElementById('audio-player');
         const audioSensitivitySlider = document.getElementById('audio-sensitivity-slider');
         const audioSensitivityValue = document.getElementById('audio-sensitivity-value');
 
@@ -664,7 +695,7 @@
               if (!lastTime) lastTime = timestamp;
               const deltaTime = timestamp - lastTime;
               lastTime = timestamp;
-              time += deltaTime * 0.0015; // Slightly faster
+              time += deltaTime * 0.0015;
               ctx.clearRect(0, 0, preloaderCanvas.width, preloaderCanvas.height);
               ctx.beginPath();
               ctx.arc(centerX, centerY, 2.5, 0, Math.PI * 2);
@@ -679,7 +710,6 @@
                 ctx.strokeStyle = `rgba(255, 78, 66, ${opacity * 0.25})`;
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
-                // Optional: dots on circles
                 for (let i = 0; i < dotCount; i++) {
                   const angle = (i / dotCount) * Math.PI * 2;
                   const x = centerX + Math.cos(angle) * radius;
@@ -713,14 +743,13 @@
             
             const existingTyping = terminalContent.querySelector('.typing-active');
             if (existingTyping) {
-                 // Add to queue if already typing
                  terminalMessageQueue.push({text: message, isCommand});
                  return;
             }
 
             const newLine = document.createElement("div");
             newLine.className = `terminal-line ${isCommand ? 'command-line' : ''} typing-active`;
-            terminalContent.insertBefore(newLine, terminalTypingLine); // Insert before the permanent blinking cursor
+            terminalContent.insertBefore(newLine, terminalTypingLine);
             
             let charIndex = 0;
             function typeChar() {
@@ -730,9 +759,9 @@
                     terminalContent.scrollTop = terminalContent.scrollHeight;
                     setTimeout(typeChar, typeSpeed);
                 } else {
-                    newLine.textContent = message; // Remove cursor when done
+                    newLine.textContent = message;
                     newLine.classList.remove('typing-active');
-                    processNextTerminalMessage(); // Check queue
+                    processNextTerminalMessage();
                 }
             }
             typeChar();
@@ -746,93 +775,92 @@
         }
 
 
-        // --- MAZE LOGIC (Original, might be adapted for audio later) ---
-        function createGrid(w, h) { return Array(h).fill(null).map(() => Array(w).fill(null).map(() => ({ N: true, E: true, S: true, W: true, originalVertices: null, mesh: null }))); }
+        // --- MAZE LOGIC ---
+        function createGrid(w, h) { return Array(h).fill(null).map(() => Array(w).fill(null).map(() => ({ N: true, E: true, S: true, W: true, visited: false }))); }
+
         function generateMazeGrid(width, height) {
-            // ... (original maze generation logic - unchanged) ...
             const grid = createGrid(width, height);
             const dOp = { 'N': 'S', 'S': 'N', 'E': 'W', 'W': 'E' };
             const dx = { 'E': 1, 'W': -1, 'N': 0, 'S': 0 };
             const dy = { 'E': 0, 'W': 0, 'N': -1, 'S': 1 };
             const stack = [[Math.floor(Math.random()*width), Math.floor(Math.random()*height)]];
-            const visited = new Set([`${stack[0][0]},${stack[0][1]}`]);
+            grid[stack[0][1]][stack[0][0]].visited = true;
+
             while (stack.length > 0) {
                 const [cx, cy] = stack[stack.length - 1];
                 const neighbors = [];
                 for (const dir of ['N', 'E', 'S', 'W']) {
                     const nx = cx + dx[dir], ny = cy + dy[dir];
-                    if (nx >= 0 && nx < width && ny >= 0 && ny < height && !visited.has(`${nx},${ny}`)) {
+                    if (nx >= 0 && nx < width && ny >= 0 && ny < height && !grid[ny][nx].visited) {
                         neighbors.push({ dir, x: nx, y: ny });
                     }
                 }
                 if (neighbors.length > 0) {
                     const { dir, x: nx, y: ny } = neighbors[Math.floor(Math.random() * neighbors.length)];
-                    grid[cy][cx][dir] = false; grid[ny][nx][dOp[dir]] = false;
-                    visited.add(`${nx},${ny}`); stack.push([nx, ny]);
-                } else { stack.pop(); }
+                    grid[cy][cx][dir] = false;
+                    grid[ny][nx][dOp[dir]] = false;
+                    grid[ny][nx].visited = true;
+                    stack.push([nx, ny]);
+                } else {
+                    stack.pop();
+                }
             }
             return grid;
         }
         function getRandomPerimeterCell(w, h, exclude = null, minDistance = 0) {
-            // ... (original logic - unchanged) ...
             const perimeter = [];
             for (let x = 0; x < w; x++) { perimeter.push({ x, y: 0 }); perimeter.push({ x, y: h - 1 }); }
             for (let y = 1; y < h - 1; y++) { perimeter.push({ x: 0, y }); perimeter.push({ x: w - 1, y }); }
             
             let attempts = 0;
             while(attempts < 100) {
-                let potentialCells = perimeter;
-                if (exclude) {
-                    potentialCells = perimeter.filter(p => p.x !== exclude.x || p.y !== exclude.y);
-                }
-                if(potentialCells.length === 0) return perimeter[0] || {x:0,y:0}; // fallback
+                let potentialCells = perimeter.filter(p => !exclude || p.x !== exclude.x || p.y !== exclude.y);
+                if(potentialCells.length === 0) return perimeter[0] || {x:0,y:0};
                 
                 const cell = potentialCells[Math.floor(Math.random() * potentialCells.length)];
                 
                 if (exclude && minDistance > 0) {
                     const dist = Math.sqrt(Math.pow(cell.x - exclude.x, 2) + Math.pow(cell.y - exclude.y, 2));
-                    if (dist >= minDistance) {
-                        return cell;
-                    }
+                    if (dist >= minDistance) return cell;
                 } else {
                     return cell;
                 }
                 attempts++;
             }
-            return perimeter.filter(p => p.x !== exclude?.x || p.y !== exclude?.y)[0] || perimeter[0] || {x:0,y:0}; // fallback
+            return potentialCells[0] || perimeter[0] || {x:0,y:0};
         }
         function solveMaze(grid, start, end) {
-            // ... (original logic - unchanged) ...
             const w = grid[0].length, h = grid.length;
             const dx = { 'E': 1, 'W': -1, 'N': 0, 'S': 0 };
             const dy = { 'E': 0, 'W': 0, 'N': -1, 'S': 1 };
-            const q = [start], visited = new Set([`${start.x},${start.y}`]), parentMap = new Map();
+            const q = [start];
+            const visited = new Set([`${start.x},${start.y}`]);
+            const parentMap = new Map();
             let pathFound = false;
+
             while (q.length > 0) {
                 const curr = q.shift();
                 if (curr.x === end.x && curr.y === end.y) { pathFound = true; break; }
                 for (const dir of ['N', 'E', 'S', 'W']) {
                     if (!grid[curr.y][curr.x][dir]) {
-                        const nx = curr.x + dx[dir], ny = curr.y + dy[dir], key = `${nx},${ny}`;
+                        const nx = curr.x + dx[dir], ny = curr.y + dy[dir];
+                        const key = `${nx},${ny}`;
                         if (nx >= 0 && nx < w && ny >= 0 && ny < h && !visited.has(key)) {
-                            visited.add(key); parentMap.set(key, `${curr.x},${curr.y}`); q.push({ x: nx, y: ny });
+                            visited.add(key);
+                            parentMap.set(key, curr);
+                            q.push({ x: nx, y: ny });
                         }
                     }
                 }
             }
             if (!pathFound) return [];
-            const path = []; let currKey = `${end.x},${end.y}`;
-            while (currKey && parentMap.has(currKey) || (currKey === `${start.x},${start.y}`)) {
-                const [x, y] = currKey.split(',').map(Number);
-                path.unshift({ x, y }); 
-                if (currKey === `${start.x},${start.y}`) break;
-                currKey = parentMap.get(currKey);
+            const path = [];
+            let curr = end;
+            while (curr) {
+                path.unshift(curr);
+                curr = parentMap.get(`${curr.x},${curr.y}`);
             }
-             if (path.length > 0 && (path[0].x !== start.x || path[0].y !== start.y)) { // Ensure path starts at start
-                if(parentMap.size === 0 && start.x === end.x && start.y === end.y) return [start]; // Start and end are same
-                return []; // Invalid path
-             }
-            return path;
+            return (path[0].x === start.x && path[0].y === start.y) ? path : [];
         }
         function isPathUninteresting(path) {
              if (!path || path.length < 3) return true;
@@ -844,15 +872,15 @@
         // --- THREE.JS INITIALIZATION (Merged) ---
         function initThree() {
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x0a0e17, 0.035); // Adjusted fog
+            scene.fog = new THREE.FogExp2(0x0a0e17, 0.035);
             
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 5000);
-            camera.position.set(0, 80, 150); // Default maze view
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 500000);
+            camera.position.set(0, 80, 150);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true });
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setClearColor(0x000000, 0); // Transparent background for three-container
+            renderer.setClearColor(0x000000, 0);
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.getElementById('three-container').appendChild(renderer.domElement);
@@ -861,25 +889,21 @@
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
             controls.minDistance = 20;
-            controls.maxDistance = 600;
+            controls.maxDistance = 60000;
             controls.target.set(0,0,0);
 
-            // Lighting (Enhanced from visualizer and maze)
-            const ambientLight = new THREE.AmbientLight(0x707080, 0.8); // Softer ambient
+            const ambientLight = new THREE.AmbientLight(0x707080, 0.8);
             scene.add(ambientLight);
             
-            const dirLight = new THREE.DirectionalLight(0xffeedd, 1.2); // Warmer directional
+            const dirLight = new THREE.DirectionalLight(0xffeedd, 1.2);
             dirLight.position.set(70, 100, 60);
             dirLight.castShadow = true;
-            dirLight.shadow.mapSize.width = 2048;
-            dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.mapSize.width = 2048; dirLight.shadow.mapSize.height = 2048;
             dirLight.shadow.camera.top = 250; dirLight.shadow.camera.bottom = -250;
             dirLight.shadow.camera.left = -250; dirLight.shadow.camera.right = 250;
-            dirLight.shadow.camera.near = 0.5;
-            dirLight.shadow.camera.far = 500;
+            dirLight.shadow.camera.near = 0.5; dirLight.shadow.camera.far = 500;
             scene.add(dirLight);
 
-            // Accent point lights (from visualizer, can be toned down/repositioned)
             const pointLight1 = new THREE.PointLight(varToHex(getCSSVariableValue('--accent-primary')), 0.7, 300, 1.5);
             pointLight1.position.set(50, 30, 50);
             scene.add(pointLight1);
@@ -888,22 +912,18 @@
             scene.add(pointLight2);
             
             scene.add(mazeGroup);
-            clock = new THREE.Clock(); // For animations
+            clock = new THREE.Clock();
             
-            // Background particles from visualizer (optional, can be performance intensive)
-            // createBackgroundParticles(); // Call if desired
-
-            addEventListeners(); // For maze and general UI
+            addEventListeners();
             animate();
             addTerminalMessage("3D RENDERER INITIALIZED.", false, 10);
         }
         
-        // Helper to convert CSS variable like 'rgb(r, g, b)' or '#rrggbb' to hex
         function varToHex(colorString) {
             if (colorString.startsWith('#')) return parseInt(colorString.replace("#", "0x"));
             if (colorString.startsWith('rgb')) {
                 const parts = colorString.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-                if (!parts) return 0xffffff; // Default white
+                if (!parts) return 0xffffff;
                 delete parts[0];
                 for (let i = 1; i <= 3; ++i) {
                     parts[i] = parseInt(parts[i]).toString(16);
@@ -911,211 +931,213 @@
                 }
                 return parseInt("0x" + parts.join(''));
             }
-            return 0xffffff; // Default
+            return 0xffffff;
         }
 
         function getCSSVariableValue(varName) {
             return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
         }
 
-
-        // --- MAZE DRAWING (Adapted for dynamic walls) ---
+        // --- MAZE DRAWING ---
         function draw3DMaze(grid, start, end, cellSize, wallHeight) {
             clearSceneContent();
-            mazeData.wallMeshes = []; // Clear previous wall meshes
+            mazeData.wallMeshes = [];
             
             const width = grid[0].length;
             const height = grid.length;
             const wallThickness = cellSize * 0.1;
 
-            // Wall material - will be updated by audio
             const wallMat = new THREE.MeshStandardMaterial({
-                color: varToHex(getCSSVariableValue('--text-secondary')), // Initial color
-                roughness: 0.7,
-                metalness: 0.2,
-                emissive: 0x000000,
-                emissiveIntensity: 0,
+                color: varToHex(getCSSVariableValue('--text-secondary')),
+                roughness: 0.7, metalness: 0.2, emissive: 0x000000,
             });
-            
-            const wallSegmentResolution = 1; // Segments for potential deformation, default 1 (solid)
+            const wallGeo = new THREE.BoxGeometry(1, 1, 1); // Unit geometry
 
+            const createWall = (posX, posY, posZ, scaleX, scaleY, scaleZ) => {
+                const wall = new THREE.Mesh(wallGeo, wallMat.clone());
+                wall.scale.set(scaleX, scaleY, scaleZ);
+                wall.position.set(posX, posY, posZ);
+                wall.castShadow = true;
+                wall.receiveShadow = true;
+                wall.userData.originalVertices = wall.geometry.attributes.position.array.slice(); // Store unit vertices
+                
+                // For grow-in animation
+                wall.scale.y = 0.001;
+                gsap.to(wall.scale, { y: scaleY, duration: 1.5, ease: 'elastic.out(1, 0.5)', delay: Math.random() * 1.0 });
+
+                mazeGroup.add(wall);
+                mazeData.wallMeshes.push(wall);
+            };
+
+            // Draw inner walls
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
                     const cell = grid[y][x];
-                    
-                    // Helper to create a wall
-                    const createWall = (posX, posY, posZ, scaleX, scaleY, scaleZ, rotationY = 0) => {
-                        // Use BoxGeometry for simplicity, deformation will be faked by noise on shader or simple vertex displacement
-                        const wallGeo = new THREE.BoxGeometry(scaleX, scaleY, scaleZ, wallSegmentResolution,1,wallSegmentResolution);
-                        const wall = new THREE.Mesh(wallGeo, wallMat.clone()); // Clone material for individual control if needed later
-                        wall.position.set(posX, posY, posZ);
-                        if (rotationY) wall.rotation.y = rotationY;
-                        wall.castShadow = true;
-                        wall.receiveShadow = true; // Walls can receive shadows too
-                        mazeGroup.add(wall);
-                        mazeData.wallMeshes.push(wall);
-                        // Store original vertices for deformation
-                        wall.userData.originalVertices = wall.geometry.attributes.position.array.slice();
-                    };
-
-                    if (cell.E && x < width - 1) { // East wall
-                        createWall((x + 1) * cellSize - cellSize/2 + wallThickness/2 , wallHeight / 2, y * cellSize, wallThickness, wallHeight, cellSize);
-                    } else if (x === width -1 ) { // Outer East wall if no start/end
-                         if (!( (start.x === x && start.y === y && grid[y][x].E === false) || (end.x === x && end.y === y && grid[y][x].E === false) )) {
-                            createWall((x + 1) * cellSize - cellSize/2 + wallThickness/2, wallHeight / 2, y * cellSize, wallThickness, wallHeight, cellSize);
-                         }
+                    if (cell.E && x < width - 1) {
+                        createWall((x + 1) * cellSize, wallHeight / 2, y * cellSize + cellSize / 2, wallThickness, wallHeight, cellSize);
                     }
-
-
-                    if (cell.S && y < height - 1) { // South wall
-                        createWall(x * cellSize, wallHeight / 2, (y + 1) * cellSize - cellSize/2 + wallThickness/2, cellSize, wallHeight, wallThickness);
-                    } else if (y === height - 1) { // Outer South wall if no start/end
-                         if (!( (start.x === x && start.y === y && grid[y][x].S === false) || (end.x === x && end.y === y && grid[y][x].S === false) )) {
-                            createWall(x * cellSize, wallHeight / 2, (y + 1) * cellSize - cellSize/2 + wallThickness/2, cellSize, wallHeight, wallThickness);
-                         }
-                    }
-                    
-                     // Always draw North walls for the first row (y=0) unless it's a start/end opening
-                    if (y === 0) {
-                        if (!( (start.x === x && start.y === y && grid[y][x].N === false) || (end.x === x && end.y === y && grid[y][x].N === false) )) {
-                             createWall(x * cellSize, wallHeight / 2, y * cellSize - cellSize/2 - wallThickness/2, cellSize, wallHeight, wallThickness);
-                        }
-                    }
-                    // Always draw West walls for the first col (x=0) unless it's a start/end opening
-                    if (x === 0) {
-                         if (!( (start.x === x && start.y === y && grid[y][x].W === false) || (end.x === x && end.y === y && grid[y][x].W === false) )) {
-                             createWall(x * cellSize - cellSize/2 - wallThickness/2, wallHeight / 2, y * cellSize, wallThickness, wallHeight, cellSize);
-                        }
+                    if (cell.S && y < height - 1) {
+                        createWall(x * cellSize + cellSize / 2, wallHeight / 2, (y + 1) * cellSize, cellSize, wallHeight, wallThickness);
                     }
                 }
+            }
+
+            // Draw border walls, excluding start/end openings
+            const wallIsGap = (x, y, target) => (target.x === x && target.y === y);
+            for(let x = 0; x < width; x++) {
+                 if (!wallIsGap(x, 0, start) && !wallIsGap(x, 0, end)) {
+                     createWall(x * cellSize + cellSize / 2, wallHeight / 2, 0, cellSize, wallHeight, wallThickness);
+                 }
+                 if (!wallIsGap(x, height - 1, start) && !wallIsGap(x, height - 1, end)) {
+                     createWall(x * cellSize + cellSize / 2, wallHeight / 2, height * cellSize, cellSize, wallHeight, wallThickness);
+                 }
+            }
+            for(let y = 0; y < height; y++) {
+                 if (!wallIsGap(0, y, start) && !wallIsGap(0, y, end)) {
+                    createWall(0, wallHeight/2, y * cellSize + cellSize/2, wallThickness, wallHeight, cellSize);
+                 }
+                 if (!wallIsGap(width - 1, y, start) && !wallIsGap(width - 1, y, end)) {
+                    createWall(width * cellSize, wallHeight/2, y * cellSize + cellSize/2, wallThickness, wallHeight, cellSize);
+                 }
             }
             
             // Floor
             const floorGeo = new THREE.PlaneGeometry(width * cellSize, height * cellSize);
             const floorMat = new THREE.MeshStandardMaterial({ color: 0x403833, roughness: 0.9, metalness: 0.1 });
-            const floor = new THREE.Mesh(floorGeo, floorMat);
-            floor.rotation.x = -Math.PI / 2;
-            floor.position.y = -wallThickness/2; // Slightly below walls
-            floor.receiveShadow = true;
-            mazeGroup.add(floor);
+            mazeData.floorMesh = new THREE.Mesh(floorGeo, floorMat);
+            mazeData.floorMesh.rotation.x = -Math.PI / 2;
+            mazeData.floorMesh.position.set((width * cellSize) / 2, 0, (height * cellSize) / 2);
+            mazeData.floorMesh.receiveShadow = true;
+            //mazeGroup.add(mazeData.floorMesh);
 
             // Start/End Markers
             [start, end].forEach((point, index) => {
-                const markerGeo = new THREE.CylinderGeometry(cellSize * 0.3, cellSize * 0.3, wallHeight * 0.5, 16);
+                const markerGeo = new THREE.CylinderGeometry(cellSize * 0.3, cellSize * 0.3, 0.5, 16);
                 const markerMat = new THREE.MeshStandardMaterial({
-                    color: index === 0 ? 0x44ff44 : 0xff4444, // Green for start, Red for end
+                    color: index === 0 ? 0x44ff44 : 0xff4444,
                     emissive: index === 0 ? 0x22aa22 : 0xaa2222,
-                    emissiveIntensity: 1,
-                    roughness: 0.4
+                    emissiveIntensity: 1, roughness: 0.4
                 });
                 const marker = new THREE.Mesh(markerGeo, markerMat);
-                marker.position.set(point.x * cellSize, wallHeight * 0.25, point.y * cellSize);
+                marker.position.set(point.x * cellSize + cellSize/2, 0.25, point.y * cellSize + cellSize/2);
                 marker.castShadow = true;
                 mazeGroup.add(marker);
             });
 
-            // Center the mazeGroup (important for OrbitControls and general positioning)
+            // Center the mazeGroup
             const box = new THREE.Box3().setFromObject(mazeGroup);
             const center = box.getCenter(new THREE.Vector3());
-            mazeGroup.position.sub(center); // This moves the group so its geometric center is at (0,0,0)
-             // Then, explicitly set the group's position if you want it elsewhere, e.g., mazeGroup.position.set(0, 0, 0);
+            mazeGroup.position.sub(center);
             
             addTerminalMessage(`MAZE GENERATED: ${width}x${height}, ${mazeData.wallMeshes.length} WALLS.`);
             updateMazeMetrics();
         }
         
-        // --- PATH DRAWING (Original, colors can be made reactive) ---
-        function drawAnimatedPath(path, cellSize) { /* ... original ... */ 
-            clearPathObject();
-            if (!path || path.length < 1) return;
-
-            pathObject = new THREE.Group();
-            pathObject.name = 'solution_path_group';
-            mazeGroup.add(pathObject); // Add to mazeGroup so it's centered with the maze
-
-            const pathMat = new THREE.MeshStandardMaterial({
-                color: varToHex(getCSSVariableValue('--accent-tertiary')), 
-                emissive: varToHex(getCSSVariableValue('--accent-primary')), emissiveIntensity: 1,
-                side: THREE.DoubleSide, depthTest: false, transparent: true, opacity: 0.9,
-                roughness: 0.5
-            });
-            const pathGeo = new THREE.BoxGeometry(cellSize * 0.7, 0.2, cellSize * 0.7);
-
-
-            let i = 0;
-            const baseInterval = 50; 
-            
-            function addSegment() {
-                if (i >= path.length) {
-                    addTerminalMessage("PATH SOLUTION ANIMATION COMPLETE.");
-                    return;
-                }
-                const cell = path[i];
-                const segment = new THREE.Mesh(pathGeo, pathMat); // Use unique material if colors change per segment
-                segment.position.set(
-                    cell.x * cellSize, 0.1, cell.y * cellSize // Centered with mazeGroup already
-                );
-                pathObject.add(segment);
-                i++;
-                
-                let currentInterval = baseInterval;
-                if(isAudioPlaying && audioAnalyser){
-                    let sum = 0;
-                    audioAnalyser.getByteFrequencyData(frequencyDataArray); // Assuming frequencyDataArray is populated
-                    for(let k=0; k<frequencyDataArray.length/4; k++) sum += frequencyDataArray[k]; // Low frequencies
-                    let avg = sum / (frequencyDataArray.length/4);
-                    currentInterval = baseInterval / (1 + (avg/255 * audioReactivityFactor * 0.5)); // Speed up with bass
-                    currentInterval = Math.max(10, currentInterval); // Cap minimum interval
-                }
-                setTimeout(addSegment, currentInterval);
-            }
-            addSegment();
-        }
-        function drawInstantPath(path, cellSize) { /* ... original ... */
-            clearPathObject();
-            if (!path || path.length < 1) return;
-
-            pathObject = new THREE.Group();
-            pathObject.name = 'solution_path_group';
-            mazeGroup.add(pathObject);
-
-            const pathMat = new THREE.MeshStandardMaterial({
-                color: varToHex(getCSSVariableValue('--accent-tertiary')), 
-                emissive: varToHex(getCSSVariableValue('--accent-primary')), emissiveIntensity: 1,
-                side: THREE.DoubleSide, depthTest: false, transparent: true, opacity: 0.9,
-                roughness: 0.5
-            });
-            const pathGeo = new THREE.BoxGeometry(cellSize * 0.7, 0.2, cellSize * 0.7);
-
-            for (const cell of path) {
-                const segment = new THREE.Mesh(pathGeo, pathMat.clone());
-                 segment.position.set(
-                    cell.x * cellSize, 0.1, cell.y * cellSize
-                );
-                pathObject.add(segment);
-            }
-            addTerminalMessage("PATH SOLUTION DRAWN INSTANTLY.");
+        function drawAnimatedPath(path, cellSize) {
+    clearPathObject();
+    if (!path || path.length < 1) return;
+    
+    pathObject = new THREE.Group();
+    pathObject.name = 'solution_path_group';
+    mazeGroup.add(pathObject);
+    
+    const pathMat = new THREE.MeshStandardMaterial({
+        color: varToHex(getCSSVariableValue('--accent-tertiary')),
+        emissive: varToHex(getCSSVariableValue('--accent-primary')),
+        emissiveIntensity: 1.5,
+        side: THREE.DoubleSide,
+        depthTest: false,
+        transparent: true,
+        opacity: 0.8,
+        roughness: 0.5
+    });
+    
+    const pathGeo = new THREE.BoxGeometry(cellSize * 0.7, 0.2, cellSize * 0.7);
+    let i = 0;
+    const baseInterval = 50;
+    
+    function addSegment() {
+        if (i >= path.length) {
+            addTerminalMessage("PATH SOLUTION ANIMATION COMPLETE.");
+            return;
         }
         
-        // --- AUDIO PROCESSING (Adapted from Visualizer) ---
+        const cell = path[i];
+        const segment = new THREE.Mesh(pathGeo, pathMat.clone());
+        segment.position.set(
+            cell.x * cellSize + cellSize / 2,
+            0.1,
+            cell.y * cellSize + cellSize / 2
+        );
+        pathObject.add(segment);
+        i++;
+        
+        let currentInterval = baseInterval;
+        if (isAudioPlaying && audioAnalyser && frequencyDataArray) {
+            let sum = 0;
+            for (let k = 0; k < frequencyDataArray.length / 4; k++) sum += frequencyDataArray[k];
+            let avg = sum / (frequencyDataArray.length / 4);
+            currentInterval = baseInterval / (1 + (avg / 255 * audioReactivityFactor * 0.5));
+            currentInterval = Math.max(10, currentInterval);
+        }
+        
+        setTimeout(addSegment, currentInterval);
+    }
+    
+    addSegment();
+}
+
+function drawInstantPath(path, cellSize) {
+    clearPathObject();
+    if (!path || path.length < 1) return;
+
+    pathObject = new THREE.Group();
+    pathObject.name = 'solution_path_group';
+    mazeGroup.add(pathObject);
+
+    const pathMat = new THREE.MeshStandardMaterial({
+        color: varToHex(getCSSVariableValue('--accent-tertiary')),
+        emissive: varToHex(getCSSVariableValue('--accent-primary')),
+        emissiveIntensity: 1.5,
+        side: THREE.DoubleSide,
+        depthTest: false,
+        transparent: true,
+        opacity: 0.8,
+        roughness: 0.5
+    });
+
+    const pathGeo = new THREE.BoxGeometry(cellSize * 0.7, 0.2, cellSize * 0.7);
+
+    for (const cell of path) {
+        const segment = new THREE.Mesh(pathGeo, pathMat.clone());
+        segment.position.set(
+            cell.x * cellSize + cellSize / 2,
+            0.1,
+            cell.y * cellSize + cellSize / 2
+        );
+        pathObject.add(segment);
+    }
+
+    addTerminalMessage("PATH SOLUTION DRAWN INSTANTLY.");
+}
+
+        // --- AUDIO PROCESSING ---
         function initAudioSystem() {
             if (isAudioInitialized) return true;
             try {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 audioAnalyser = audioContext.createAnalyser();
-                audioAnalyser.fftSize = 1024; // Smaller FFT for less detail but faster processing
+                audioAnalyser.fftSize = 1024;
                 audioAnalyser.smoothingTimeConstant = 0.7;
                 audioDataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
                 frequencyDataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
-                // Don't connect analyser to destination directly if you want audio player to control volume/output
-                // audioAnalyser.connect(audioContext.destination); 
                 isAudioInitialized = true;
                 addTerminalMessage("AUDIO SUBSYSTEM INITIALIZED.");
                 terminalStatus.textContent = "AUDIO READY";
                 return true;
             } catch (error) {
                 console.error("Audio initialization error:", error);
-                addTerminalMessage("ERROR: AUDIO SUBSYSTEM FAILED TO INITIALIZE. " + error.message, true);
+                addTerminalMessage("ERROR: AUDIO SUBSYSTEM FAILED. " + error.message, true);
                 showNotification("AUDIO SYSTEM ERROR");
                 terminalStatus.textContent = "AUDIO ERROR";
                 return false;
@@ -1133,7 +1155,7 @@
                         addTerminalMessage("AUDIO CONTEXT RESUMED.");
                     }
                 }).catch(err => {
-                    addTerminalMessage("ERROR: FAILED TO RESUME AUDIO CONTEXT. " + err.message, true);
+                    addTerminalMessage("ERROR: FAILED TO RESUME AUDIO. " + err.message, true);
                 });
             } else {
                 audioContextStarted = true;
@@ -1146,13 +1168,13 @@
                 addTerminalMessage("ERROR: AUDIO CONTEXT NOT READY.", true);
                 return false;
             }
-            if (audioSource) { // Disconnect previous source if any
+            if (audioSource) {
                 audioSource.disconnect();
             }
             try {
                 audioSource = audioContext.createMediaElementSource(audioElement);
                 audioSource.connect(audioAnalyser);
-                audioAnalyser.connect(audioContext.destination); // Connect analyser output to speakers
+                audioAnalyser.connect(audioContext.destination);
                 addTerminalMessage("AUDIO SOURCE CONNECTED: " + (audioElement.src.substring(0,50) || "HTMLMediaElement"));
                 return true;
             } catch (error) {
@@ -1162,43 +1184,47 @@
             }
         }
 
+        function playAudio(audioElement) {
+            if (!isMazeGeneratedForSong) {
+                handleGenerate();
+                isMazeGeneratedForSong = true;
+            }
+            audioElement.play().catch(e => addTerminalMessage("Playback error: " + e.message, true));
+        }
+
         function loadAudioFile(file) {
             if (!initAudioSystem()) return;
+            isMazeGeneratedForSong = false;
             const fileURL = URL.createObjectURL(file);
             currentAudioElement.src = fileURL;
             fileLabel.textContent = file.name.length > 25 ? file.name.substring(0,22) + "..." : file.name;
-            currentAudioElement.oncanplaythrough = () => { // Wait till it can play
+            currentAudioElement.oncanplaythrough = () => {
                 if (setupAudioSource(currentAudioElement)) {
-                    currentAudioElement.play().catch(e => addTerminalMessage("Playback error: " + e.message, true));
-                    isAudioPlaying = true;
-                    terminalStatus.textContent = "PLAYING";
+                    playAudio(currentAudioElement);
                 }
             };
             currentAudioElement.onerror = () => {
                 addTerminalMessage(`ERROR LOADING AUDIO FILE: ${file.name}`, true);
                 fileLabel.textContent = "LOAD ERROR";
-                terminalStatus.textContent = "AUDIO ERROR";
             };
             addTerminalMessage(`LOADING AUDIO FILE: ${file.name}`);
         }
 
         function loadDemoTrack(url) {
             if (!initAudioSystem()) return;
+            isMazeGeneratedForSong = false;
             currentAudioElement.src = url;
             const filename = url.split("/").pop();
             fileLabel.textContent = filename.length > 25 ? filename.substring(0,22) + "..." : filename;
             
             currentAudioElement.oncanplaythrough = () => {
                  if (setupAudioSource(currentAudioElement)) {
-                    currentAudioElement.play().catch(e => addTerminalMessage("Playback error: " + e.message, true));
-                    isAudioPlaying = true;
-                    terminalStatus.textContent = "PLAYING";
+                    playAudio(currentAudioElement);
                 }
             };
              currentAudioElement.onerror = () => {
                 addTerminalMessage(`ERROR LOADING DEMO: ${filename}`, true);
                 fileLabel.textContent = "LOAD ERROR";
-                terminalStatus.textContent = "AUDIO ERROR";
             };
             addTerminalMessage(`LOADING DEMO TRACK: ${filename}`);
         }
@@ -1212,7 +1238,6 @@
         function updateMazeMetrics() {
             wallCountValueElement.textContent = mazeData.wallMeshes.length;
             pathLengthValueElement.textContent = mazeData.solutionPath ? mazeData.solutionPath.length : 0;
-            // Basic complexity: (width * height) / (path length if > 0)
             let complexity = "N/A";
             if (mazeData.grid && mazeData.solutionPath && mazeData.solutionPath.length > 0) {
                 complexity = ((mazeData.grid[0].length * mazeData.grid.length * 10) / mazeData.solutionPath.length).toFixed(1);
@@ -1222,45 +1247,37 @@
 
         function clearPathObject() {
             if (pathObject) {
+                mazeGroup.remove(pathObject);
                 pathObject.traverse(child => {
                     if (child.isMesh) { child.geometry.dispose(); child.material.dispose(); }
                 });
-                mazeGroup.remove(pathObject); pathObject = null;
+                pathObject = null;
             }
         }
         function clearSceneContent() {
             clearPathObject();
-            mazeData.wallMeshes.forEach(wall => {
-                if (wall.geometry) wall.geometry.dispose();
-                if (wall.material) wall.material.dispose();
-                mazeGroup.remove(wall);
-            });
             mazeData.wallMeshes = [];
             
-            // Remove floor and markers if they exist by name or type
             const toRemove = [];
-            mazeGroup.children.forEach(child => {
-                if(child.isMesh && (child.geometry instanceof THREE.PlaneGeometry || child.geometry instanceof THREE.CylinderGeometry)){
-                    toRemove.push(child);
-                }
-            });
+            mazeGroup.children.forEach(child => toRemove.push(child));
             toRemove.forEach(child => {
                  if (child.geometry) child.geometry.dispose();
                  if (child.material) child.material.dispose();
                  mazeGroup.remove(child);
             });
-
             mazeData.grid = null;
+            mazeData.floorMesh = null;
             solveBtn.disabled = true;
+            isMazeGeneratedForSong = false;
             updateMazeMetrics();
-            addTerminalMessage("SCENE CLEARED.");
+            addTerminalMessage("SCENE CLEARED. READY FOR NEW GENERATION.");
         }
         
         function handleGenerate() {
             generateBtn.disabled = true; generateBtn.textContent = 'Generating...';
             addTerminalMessage("INITIATING MAZE GENERATION PROTOCOL...");
 
-            setTimeout(() => { // Simulate delay for complex generation feel
+            setTimeout(() => {
                 const width = parseInt(mazeWidthInput.value);
                 const height = parseInt(mazeHeightInput.value);
                 const cellSize = parseFloat(cellSizeInput.value);
@@ -1269,7 +1286,7 @@
                 let attempts = 0, isGoodMaze = false;
                 do {
                     mazeData.grid = generateMazeGrid(width, height);
-                    const min_dist = Math.max(width, height) / 2.5; // Slightly less strict min_dist
+                    const min_dist = Math.max(width, height) / 2.5;
                     mazeData.start = getRandomPerimeterCell(width, height);
                     mazeData.end = getRandomPerimeterCell(width, height, mazeData.start, min_dist);
                     mazeData.solutionPath = solveMaze(mazeData.grid, mazeData.start, mazeData.end);
@@ -1277,9 +1294,9 @@
                         isGoodMaze = true;
                     }
                     attempts++;
-                } while (!isGoodMaze && attempts < 30); // Reduced attempts for faster UI response
+                } while (!isGoodMaze && attempts < 30);
 
-                if (!isGoodMaze) addTerminalMessage("WARNING: Could not generate a complex maze after " + attempts + " attempts. Using last.", true);
+                if (!isGoodMaze) addTerminalMessage("WARNING: Could not generate a complex maze. Using last attempt.", true);
                 
                 draw3DMaze(mazeData.grid, mazeData.start, mazeData.end, cellSize, wallH);
                 
@@ -1287,7 +1304,7 @@
                 frameView();
                 generateBtn.disabled = false; generateBtn.textContent = 'Generate Maze';
                 showNotification("New Maze Generated!");
-            }, 100); // Short delay
+            }, 100);
         }
 
         function handleSolve() {
@@ -1306,137 +1323,121 @@
         }
         
         function frameView() {
-            if (mazeGroup.children.length === 0 && mazeData.wallMeshes.length === 0) return;
+            if (mazeGroup.children.length === 0) return;
             
-            // Calculate bounding box of mazeGroup children, excluding the pathObject if it exists
-            const tempGroup = new THREE.Group();
-            mazeGroup.children.forEach(child => {
-                if (child !== pathObject) { // Exclude path for framing
-                    tempGroup.add(child.clone()); // Cloning to avoid modifying original scene graph for bbox calculation
-                }
-            });
-            if (tempGroup.children.length === 0) return; // Nothing to frame
-
-            const box = new THREE.Box3().setFromObject(tempGroup);
+            const box = new THREE.Box3().setFromObject(mazeGroup);
             const size = box.getSize(new THREE.Vector3());
-            const center = box.getCenter(new THREE.Vector3()); // This center is in mazeGroup's local space
+            const center = box.getCenter(new THREE.Vector3());
             
-            const worldCenter = center.clone().applyMatrix4(mazeGroup.matrixWorld); // Transform to world space
-
             const maxDim = Math.max(size.x, size.y, size.z);
             const fov = camera.fov * (Math.PI / 180);
             let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-            cameraZ *= 1.8; // Zoom out a bit more
-
-            controls.target.copy(worldCenter);
-            
-            // Position camera relative to the world center
-            const offset = new THREE.Vector3(0, cameraZ * 0.6, cameraZ); // Default viewing angle
-            const newCamPos = worldCenter.clone().add(offset);
+            cameraZ *= 1.8;
 
             gsap.to(camera.position, {
-                x: newCamPos.x, y: newCamPos.y, z: newCamPos.z,
+                x: center.x, y: center.y + cameraZ * 0.8, z: center.z + cameraZ,
                 duration: 1, ease: "power2.out",
-                onUpdate: () => controls.update()
             });
             gsap.to(controls.target, {
-                x: worldCenter.x, y: worldCenter.y, z: worldCenter.z,
+                x: center.x, y: center.y, z: center.z,
                 duration: 1, ease: "power2.out"
             });
             addTerminalMessage("CAMERA VIEW FRAMED ON MAZE.");
         }
 
 
-        // --- ANIMATION LOOP (Merged) ---
+        // --- ANIMATION LOOP ---
         function animate() {
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
             const elapsedTime = clock.getElapsedTime();
 
-            controls.update(delta); // Pass delta for damping
+            controls.update(delta);
 
-            let audioLevel = 0; // Normalized 0-1
-            let bassLevel = 0; // Normalized 0-1 for bass frequencies
-            let midLevel = 0;
-            let trebleLevel = 0;
+            let audioLevel = 0, bassLevel = 0, midLevel = 0, trebleLevel = 0;
 
             if (isAudioPlaying && audioAnalyser && frequencyDataArray) {
                 audioAnalyser.getByteFrequencyData(frequencyDataArray);
-                audioAnalyser.getByteTimeDomainData(audioDataArray); // For waveform
+                audioAnalyser.getByteTimeDomainData(audioDataArray);
 
-                let sum = 0;
-                let bassSum = 0, midSum = 0, trebleSum = 0;
-                const bassEndIndex = Math.floor(frequencyDataArray.length * 0.15); // Up to ~15% for bass
-                const midEndIndex = Math.floor(frequencyDataArray.length * 0.5);  // 15% to 50% for mids
+                let sum = 0, bassSum = 0, midSum = 0, trebleSum = 0;
+                const bassEndIndex = Math.floor(frequencyDataArray.length * 0.15);
+                const midEndIndex = Math.floor(frequencyDataArray.length * 0.5);
 
                 for (let i = 0; i < frequencyDataArray.length; i++) {
-                    sum += frequencyDataArray[i];
-                    if (i < bassEndIndex) bassSum += frequencyDataArray[i];
-                    else if (i < midEndIndex) midSum += frequencyDataArray[i];
-                    else trebleSum += frequencyDataArray[i];
+                    const val = frequencyDataArray[i];
+                    sum += val;
+                    if (i < bassEndIndex) bassSum += val;
+                    else if (i < midEndIndex) midSum += val;
+                    else trebleSum += val;
                 }
-                audioLevel = (sum / frequencyDataArray.length / 255) * (audioSensitivityFactor / 5);
-                bassLevel = (bassSum / bassEndIndex / 255) * (audioSensitivityFactor / 5);
-                midLevel = (midSum / (midEndIndex - bassEndIndex) / 255) * (audioSensitivityFactor / 5);
-                trebleLevel = (trebleSum / (frequencyDataArray.length - midEndIndex) / 255) * (audioSensitivityFactor / 5);
+                const sensitivity = audioSensitivityFactor / 5.0;
+                audioLevel = (sum / frequencyDataArray.length / 255) * sensitivity;
+                bassLevel = (bassSum / bassEndIndex / 255) * sensitivity;
+                midLevel = (midSum / (midEndIndex - bassEndIndex) / 255) * sensitivity;
+                trebleLevel = (trebleSum / (frequencyDataArray.length - midEndIndex) / 255) * sensitivity;
 
-
-                // Update UI readouts for audio
-                peakValueElement.textContent = `${(audioAnalyser.fftSize > 0 ? (frequencyDataArray.indexOf(Math.max(...frequencyDataArray)) * audioContext.sampleRate / audioAnalyser.fftSize) : 0).toFixed(0)} HZ`;
+                peakValueElement.textContent = `${(frequencyDataArray.indexOf(Math.max(...frequencyDataArray)) * audioContext.sampleRate / audioAnalyser.fftSize).toFixed(0)} HZ`;
                 amplitudeValueElement.textContent = audioLevel.toFixed(2);
-                audioEnergyValueElement.textContent = (bassLevel * 100).toFixed(1); // Example using bass for "energy"
+                audioEnergyValueElement.textContent = (bassLevel * 100).toFixed(1);
 
-                // Draw visualizations
                 drawWaveformVisualizer(audioDataArray);
                 drawSpectrumVisualizer(frequencyDataArray);
 
-                // Apply audio reactivity to maze walls
                 mazeData.wallMeshes.forEach(wall => {
-                    const currentDeform = wallDeformationAmount * audioReactivityFactor * (bassLevel * 0.6 + midLevel * 0.3 + trebleLevel * 0.1); // Weighted deformation
-                    const speed = deformationSpeed * (1 + audioLevel * 0.5);
+                    const currentDeform = wallDeformationAmount * audioReactivityFactor * (bassLevel * 0.6 + midLevel * 0.3 + trebleLevel * 0.1);
+                    const speed = deformationSpeed * (1 + audioLevel * 2.0);
 
                     if (currentDeform > 0.01 && wall.userData.originalVertices) {
                         const positions = wall.geometry.attributes.position.array;
                         const originalPos = wall.userData.originalVertices;
+
                         for (let i = 0; i < positions.length; i += 3) {
-                            const noiseFactor = (Math.sin(originalPos[i] * 0.5 + elapsedTime * speed) + Math.cos(originalPos[i+2] * 0.5 + elapsedTime * speed)) * 0.5;
-                            // Deform along normals (approx for BoxGeometry - primarily X or Z axis for faces)
-                            // This is a simplified deformation. True normal-based deformation for Box requires more work or custom geometry.
-                            if (Math.abs(wall.geometry.attributes.normal.array[i]) > 0.5) { // X-normal
-                                positions[i] = originalPos[i] + noiseFactor * currentDeform * Math.sign(originalPos[i]);
-                            } else if (Math.abs(wall.geometry.attributes.normal.array[i+2]) > 0.5) { // Z-normal
-                                positions[i+2] = originalPos[i+2] + noiseFactor * currentDeform * Math.sign(originalPos[i+2]);
-                            }
+                            const p_x = originalPos[i], p_y = originalPos[i+1], p_z = originalPos[i+2];
+                            const noiseX = 0.5 * (Math.sin(p_z * 0.4 + elapsedTime * speed) + Math.cos(p_y * 0.4 + elapsedTime * speed));
+                            const noiseY = 0.5 * (Math.sin(p_x * 0.4 + elapsedTime * speed) + Math.cos(p_z * 0.4 + elapsedTime * speed));
+                            const noiseZ = 0.5 * (Math.sin(p_y * 0.4 + elapsedTime * speed) + Math.cos(p_x * 0.4 + elapsedTime * speed));
+
+                            positions[i]   = p_x + noiseX * currentDeform;
+                            positions[i+1] = p_y + noiseY * currentDeform;
+                            positions[i+2] = p_z + noiseZ * currentDeform;
                         }
                         wall.geometry.attributes.position.needsUpdate = true;
-                       // wall.geometry.computeVertexNormals(); // Can be expensive
-                    } else if (wall.userData.originalVertices) { // Reset if no deformation
+                        wall.geometry.computeVertexNormals();
+                    } else if (wall.userData.originalVertices) {
                         wall.geometry.attributes.position.array.set(wall.userData.originalVertices);
                         wall.geometry.attributes.position.needsUpdate = true;
                     }
 
-                    // Color reaction
-                    const h = (0 + bassLevel * 30) % 360 / 360; // Hue shifts with bass (red-orange)
-                    const s = 0.8 + midLevel * 0.2; // Saturation increases with mids
-                    const l = 0.4 + trebleLevel * 0.3; // Lightness increases with treble
+                    const h = (0 + bassLevel * 30) / 360;
+                    const s = 0.8 + midLevel * 0.2;
+                    const l = 0.4 + trebleLevel * 0.3;
                     wall.material.color.setHSL(h, s, Math.min(0.8, l));
                     wall.material.emissive.setHSL(h, s, Math.min(0.5, l * 0.5 * colorIntensity * audioReactivityFactor));
                     wall.material.emissiveIntensity = midLevel * colorIntensity * 2.0 * audioReactivityFactor;
                 });
-            } else { // No audio playing, reset wall appearance gradually or instantly
+                if(mazeData.floorMesh){
+                    mazeData.floorMesh.material.color.setHSL(0, 0.1, 0.1 + bassLevel * 0.1);
+                }
+                if (pathObject) {
+                    const pathIntensity = 1.5 + bassLevel * 3.0 * audioReactivityFactor;
+                    pathObject.children.forEach(seg => { if(seg.isMesh) seg.material.emissiveIntensity = pathIntensity; });
+                }
+
+            } else {
                  mazeData.wallMeshes.forEach(wall => {
-                    if (wall.userData.originalVertices) {
+                    if (wall.userData.originalVertices && wall.geometry.attributes.position.array[0] !== wall.userData.originalVertices[0]) {
                         wall.geometry.attributes.position.array.set(wall.userData.originalVertices);
                         wall.geometry.attributes.position.needsUpdate = true;
                     }
                     wall.material.color.set(varToHex(getCSSVariableValue('--text-secondary')));
                     wall.material.emissive.set(0x000000);
-                    wall.material.emissiveIntensity = 0;
                  });
+                 if(mazeData.floorMesh) mazeData.floorMesh.material.color.set(0x403833);
+                 if(pathObject) pathObject.children.forEach(seg => { if(seg.isMesh) seg.material.emissiveIntensity = 1.5; });
             }
             
-            // Update Stability Bar (example visual)
-            const stability = 50 + (audioLevel * 50); // Example, make it more meaningful
+            const stability = 50 + (audioLevel * 100);
             stabilityBarElement.style.width = `${Math.min(100, stability)}%`;
             stabilityValueElement.textContent = `${Math.min(100, stability).toFixed(0)}%`;
 
@@ -1445,21 +1446,19 @@
             updateTimestampDisplay();
         }
         
-        // --- VISUALIZER DRAWING FUNCTIONS (Waveform, Spectrum) ---
+        // --- VISUALIZER DRAWING FUNCTIONS ---
         function drawWaveformVisualizer(data) {
-            const width = waveformCanvas.width;
-            const height = waveformCanvas.height;
-            waveformCtx.clearRect(0, 0, width, height);
-            waveformCtx.fillStyle = "rgba(0,0,0,0.1)"; // Darker bg for contrast
-            waveformCtx.fillRect(0,0,width,height);
+            waveformCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+            waveformCtx.fillStyle = "rgba(0,0,0,0.1)";
+            waveformCtx.fillRect(0,0,waveformCanvas.width,waveformCanvas.height);
             waveformCtx.beginPath();
             waveformCtx.strokeStyle = getCSSVariableValue('--accent-primary');
             waveformCtx.lineWidth = 1.5;
-            const sliceWidth = width / data.length;
+            const sliceWidth = waveformCanvas.width / data.length;
             let x = 0;
             for (let i = 0; i < data.length; i++) {
-                const v = data[i] / 128.0; // Normalize 0-255 to 0-2
-                const y = v * height / 2;
+                const v = data[i] / 128.0;
+                const y = v * waveformCanvas.height / 2;
                 if (i === 0) waveformCtx.moveTo(x, y);
                 else waveformCtx.lineTo(x, y);
                 x += sliceWidth;
@@ -1468,28 +1467,22 @@
         }
 
         function drawSpectrumVisualizer(data) {
-            const width = spectrumCanvas.width;
-            const height = spectrumCanvas.height;
-            spectrumCtx.clearRect(0, 0, width, height);
+            spectrumCtx.clearRect(0, 0, spectrumCanvas.width, spectrumCanvas.height);
             spectrumCtx.fillStyle = "rgba(0,0,0,0.1)";
-            spectrumCtx.fillRect(0,0,width,height);
+            spectrumCtx.fillRect(0,0,spectrumCanvas.width,spectrumCanvas.height);
             
-            // Logarithmic scale for bars (more bars for lower frequencies)
-            const numBars = 64; // Fewer bars for clarity
-            const barWidth = width / numBars;
+            const numBars = 64;
+            const barWidth = spectrumCanvas.width / numBars;
             let x = 0;
 
             for (let i = 0; i < numBars; i++) {
-                 // Map bar index to frequencyData index (logarithmically)
                 const percent = i / numBars;
-                const logPercent = Math.pow(percent, 2); // Makes lower frequencies take more space
-                const freqIndex = Math.floor(logPercent * (data.length / 2)); // Use first half of spectrum data
-                
-                const barHeight = (data[freqIndex] / 255) * height * (audioSensitivityFactor / 5);
-                
-                const hue = (i / numBars) * 40; // 0 (red) to 40 (orange/yellow)
-                spectrumCtx.fillStyle = `hsl(${hue}, 100%, ${50 + Math.min(20, data[freqIndex]/10)}%)`; // Brighter with intensity
-                spectrumCtx.fillRect(x, height - barHeight, barWidth -1 , barHeight);
+                const logPercent = Math.pow(percent, 2);
+                const freqIndex = Math.floor(logPercent * (data.length / 2));
+                const barHeight = (data[freqIndex] / 255) * spectrumCanvas.height * (audioSensitivityFactor / 5);
+                const hue = (i / numBars) * 40;
+                spectrumCtx.fillStyle = `hsl(${hue}, 100%, ${50 + Math.min(20, data[freqIndex]/10)}%)`;
+                spectrumCtx.fillRect(x, spectrumCanvas.height - barHeight, barWidth -1 , barHeight);
                 x += barWidth;
             }
         }
@@ -1509,50 +1502,39 @@
                 resizeVisualizerCanvases();
             });
             
-            // Maze controls
+            // Maze controls with sliders
+            const setupSlider = (slider, valueLabel) => {
+                valueLabel.textContent = slider.value;
+                slider.addEventListener('input', () => valueLabel.textContent = slider.value);
+            };
+            setupSlider(mazeWidthInput, mazeWidthValue);
+            setupSlider(mazeHeightInput, mazeHeightValue);
+            setupSlider(cellSizeInput, cellSizeValue);
+            setupSlider(wallHeightInput, wallHeightValue);
+            
             generateBtn.addEventListener('click', handleGenerate);
             solveBtn.addEventListener('click', handleSolve);
             clearBtn.addEventListener('click', clearSceneContent);
             frameViewBtn.addEventListener('click', frameView);
 
             // Dynamic controls
-            wallDeformationSlider.addEventListener('input', (e) => {
-                wallDeformationAmount = parseFloat(e.target.value);
-                wallDeformationValue.textContent = wallDeformationAmount.toFixed(2);
-            });
-            deformationSpeedSlider.addEventListener('input', (e) => {
-                deformationSpeed = parseFloat(e.target.value);
-                deformationSpeedValue.textContent = deformationSpeed.toFixed(2);
-            });
-            colorIntensitySlider.addEventListener('input', (e) => {
-                colorIntensity = parseFloat(e.target.value);
-                colorIntensityValue.textContent = colorIntensity.toFixed(2);
-            });
-             audioReactivitySlider.addEventListener('input', (e) => {
-                audioReactivityFactor = parseFloat(e.target.value);
-                audioReactivityValue.textContent = audioReactivityFactor.toFixed(1);
-            });
+            wallDeformationSlider.addEventListener('input', (e) => { wallDeformationAmount = parseFloat(e.target.value); wallDeformationValue.textContent = wallDeformationAmount.toFixed(2); });
+            deformationSpeedSlider.addEventListener('input', (e) => { deformationSpeed = parseFloat(e.target.value); deformationSpeedValue.textContent = deformationSpeed.toFixed(2); });
+            colorIntensitySlider.addEventListener('input', (e) => { colorIntensity = parseFloat(e.target.value); colorIntensityValue.textContent = colorIntensity.toFixed(2); });
+            audioReactivitySlider.addEventListener('input', (e) => { audioReactivityFactor = parseFloat(e.target.value); audioReactivityValue.textContent = audioReactivityFactor.toFixed(1); });
 
             // Audio controls
-            fileBtn.addEventListener('click', () => {
-                 if (!audioContextStarted) ensureAudioContextStarted(); // Prompt for interaction if needed
-                 audioFileInput.click();
-            });
-            audioFileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) loadAudioFile(e.target.files[0]);
-            });
+            fileBtn.addEventListener('click', () => { ensureAudioContextStarted(); audioFileInput.click(); });
+            audioFileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) loadAudioFile(e.target.files[0]); });
             demoTrackBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    if (!audioContextStarted) ensureAudioContextStarted();
+                    ensureAudioContextStarted();
                     demoTrackBtns.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     loadDemoTrack(btn.dataset.url);
                 });
             });
-            audioSensitivitySlider.addEventListener('input', (e) => {
-                audioSensitivityFactor = parseFloat(e.target.value);
-                audioSensitivityValue.textContent = audioSensitivityFactor.toFixed(1);
-            });
+            audioSensitivitySlider.addEventListener('input', (e) => { audioSensitivityFactor = parseFloat(e.target.value); audioSensitivityValue.textContent = audioSensitivityFactor.toFixed(1); });
             
             // Initial values for sliders
             wallDeformationValue.textContent = wallDeformationSlider.value; wallDeformationAmount = parseFloat(wallDeformationSlider.value);
@@ -1561,22 +1543,65 @@
             audioReactivityValue.textContent = audioReactivitySlider.value; audioReactivityFactor = parseFloat(audioReactivitySlider.value);
             audioSensitivityValue.textContent = audioSensitivitySlider.value; audioSensitivityFactor = parseFloat(audioSensitivitySlider.value);
 
+Draggable.create("#maze-controls-panel", {
+    type: "x,y",
+    edgeResistance: 0.65,
+    bounds: document.body,
+    inertia: true,
+    throwResistance: 2500,
+    trigger: "#maze-controls-panel .panel-handle"
+});
 
-            // Make panels draggable
-            Draggable.create("#maze-controls-panel", {type:"x,y", edgeResistance:0.65, bounds:document.body, inertia:true, throwResistance: 2500, trigger: "#maze-controls-panel-handle"});
-            Draggable.create("#anomaly-metrics-left", {type:"x,y", edgeResistance:0.65, bounds:document.body, inertia:true, throwResistance: 2500, trigger: "#metrics-left-handle"});
-            Draggable.create("#anomaly-metrics-right", {type:"x,y", edgeResistance:0.65, bounds:document.body, inertia:true, throwResistance: 2500, trigger: "#metrics-right-handle"});
-            Draggable.create("#dynamic-controls-panel", {type:"x,y", edgeResistance:0.65, bounds:document.body, inertia:true, throwResistance: 2500, trigger: "#dynamic-controls-handle"});
-            Draggable.create("#terminal-panel", {type:"x,y", edgeResistance:0.65, bounds:document.body, inertia:true, throwResistance: 2500, trigger: "#terminal-handle"});
-            Draggable.create("#spectrum-analyzer-panel", {type:"x,y", edgeResistance:0.65, bounds:document.body, inertia:true, throwResistance: 2500, trigger: "#spectrum-handle"});
+Draggable.create("#anomaly-metrics-left", {
+    type: "x,y",
+    edgeResistance: 0.65,
+    bounds: document.body,
+    inertia: true,
+    throwResistance: 2500,
+    trigger: "#anomaly-metrics-left .panel-handle"
+});
+
+Draggable.create("#anomaly-metrics-right", {
+    type: "x,y",
+    edgeResistance: 0.65,
+    bounds: document.body,
+    inertia: true,
+    throwResistance: 2500,
+    trigger: "#anomaly-metrics-right .panel-handle"
+});
+
+Draggable.create("#dynamic-controls-panel", {
+    type: "x,y",
+    edgeResistance: 0.65,
+    bounds: document.body,
+    inertia: true,
+    throwResistance: 2500,
+    trigger: "#dynamic-controls-panel .panel-handle"
+});
+
+Draggable.create("#terminal-panel", {
+    type: "x,y",
+    edgeResistance: 0.65,
+    bounds: document.body,
+    inertia: true,
+    throwResistance: 2500,
+    trigger: "#terminal-panel .panel-handle"
+});
+
+Draggable.create("#spectrum-analyzer-panel", {
+    type: "x,y",
+    edgeResistance: 0.65,
+    bounds: document.body,
+    inertia: true,
+    throwResistance: 2500,
+    trigger: "#spectrum-analyzer-panel .panel-handle"
+});
+
         }
         
         function updateTimestampDisplay() {
             const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            timestampElement.textContent = `TIME: ${hours}:${minutes}:${seconds}`;
+            timestampElement.textContent = `TIME: ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
         }
 
         // --- INITIALIZATION ---
@@ -1586,17 +1611,17 @@
                 loadingOverlay.style.opacity = 0;
                 setTimeout(() => { 
                     loadingOverlay.style.display = 'none'; 
-                    initAudioSystem(); // Init audio early but don't require interaction yet
+                    initAudioSystem();
                     terminalStatus.textContent = "ONLINE";
-                    showNotification("System Online. Audio Ready.", 4000);
+                    showNotification("System Online. Load Audio to Generate.", 4000);
                 }, 500);
                 
                 initThree();
-                handleGenerate(); // Generate initial maze
+                // handleGenerate(); // Removed from initial load, now tied to audio playback
                 resizeVisualizerCanvases();
-                addTerminalMessage("SYSTEM INITIALIZED. AWAITING COMMANDS.");
+                addTerminalMessage("SYSTEM INITIALIZED. AWAITING AUDIO INPUT.");
 
-            }, 2500); // Preloader duration
+            }, 2500);
         }
         
         main();

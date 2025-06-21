@@ -892,33 +892,23 @@
             controls.maxDistance = 60000;
             controls.target.set(0,0,0);
 
-            const ambientLight = new THREE.AmbientLight(0x707080, 0.8);
-            scene.add(ambientLight);
-            
-            const dirLight = new THREE.DirectionalLight(0xffeedd, 1.2);
-            dirLight.position.set(70, 100, 60);
-            dirLight.castShadow = true;
-            dirLight.shadow.mapSize.width = 2048; dirLight.shadow.mapSize.height = 2048;
-            dirLight.shadow.camera.top = 250; dirLight.shadow.camera.bottom = -250;
-            dirLight.shadow.camera.left = -250; dirLight.shadow.camera.right = 250;
-            dirLight.shadow.camera.near = 0.5; dirLight.shadow.camera.far = 500;
-            scene.add(dirLight);
+            // Existing lights initialization
+const ambientLight = new THREE.AmbientLight(0x707080, 0.8);
+mazeGroup.add(ambientLight); // Changed from scene to mazeGroup
 
-            const pointLight1 = new THREE.PointLight(varToHex(getCSSVariableValue('--accent-primary')), 0.7, 300, 1.5);
-            pointLight1.position.set(50, 30, 50);
-            scene.add(pointLight1);
-            const pointLight2 = new THREE.PointLight(varToHex(getCSSVariableValue('--accent-secondary')), 0.5, 250, 1.8);
-            pointLight2.position.set(-50, 20, -50);
-            scene.add(pointLight2);
-            
-            scene.add(mazeGroup);
-            clock = new THREE.Clock();
-            
-            addEventListeners();
-            animate();
-            addTerminalMessage("3D RENDERER INITIALIZED.", false, 10);
-        }
-        
+const dirLight = new THREE.DirectionalLight(0xffeedd, 1.2);
+dirLight.position.set(70, 100, 60);
+dirLight.castShadow = true;
+mazeGroup.add(dirLight); // Changed from scene to mazeGroup
+
+const pointLight1 = new THREE.PointLight(varToHex(getCSSVariableValue('--accent-primary')), 0.7, 300, 1.5);
+pointLight1.position.set(50, 30, 50);
+mazeGroup.add(pointLight1); // Changed from scene to mazeGroup
+
+const pointLight2 = new THREE.PointLight(varToHex(getCSSVariableValue('--accent-secondary')), 0.5, 250, 1.8);
+pointLight2.position.set(-50, 20, -50);
+mazeGroup.add(pointLight2); // Changed from scene to mazeGroup
+}
         function varToHex(colorString) {
             if (colorString.startsWith('#')) return parseInt(colorString.replace("#", "0x"));
             if (colorString.startsWith('rgb')) {
@@ -961,6 +951,9 @@
                 wall.receiveShadow = true;
                 wall.userData.originalVertices = wall.geometry.attributes.position.array.slice(); // Store unit vertices
                 
+                // --- ADDITION 1 of 2: Store original Y position for ripple effect ---
+                wall.userData.originalY = posY;
+
                 // For grow-in animation
                 wall.scale.y = 0.001;
                 gsap.to(wall.scale, { y: scaleY, duration: 1.5, ease: 'elastic.out(1, 0.5)', delay: Math.random() * 1.0 });
@@ -1385,6 +1378,7 @@ function drawInstantPath(path, cellSize) {
                 drawSpectrumVisualizer(frequencyDataArray);
 
                 mazeData.wallMeshes.forEach(wall => {
+                    // Vertex-level deformation (from slider)
                     const currentDeform = wallDeformationAmount * audioReactivityFactor * (bassLevel * 0.6 + midLevel * 0.3 + trebleLevel * 0.1);
                     const speed = deformationSpeed * (1 + audioLevel * 2.0);
 
@@ -1409,12 +1403,34 @@ function drawInstantPath(path, cellSize) {
                         wall.geometry.attributes.position.needsUpdate = true;
                     }
 
+                    // Color and emissive reactivity
                     const h = (0 + bassLevel * 30) / 360;
                     const s = 0.8 + midLevel * 0.2;
                     const l = 0.4 + trebleLevel * 0.3;
                     wall.material.color.setHSL(h, s, Math.min(0.8, l));
                     wall.material.emissive.setHSL(h, s, Math.min(0.5, l * 0.5 * colorIntensity * audioReactivityFactor));
                     wall.material.emissiveIntensity = midLevel * colorIntensity * 2.0 * audioReactivityFactor;
+
+                    // --- ADDITION 2 of 2: NEW RIPPLE DEFORMATION LOGIC ---
+                    if (wall.userData.originalY !== undefined) {
+                        // Calculate distance from the center of the maze for a circular ripple effect
+                        const rippleDistance = wall.position.clone().sub(mazeGroup.position).length();
+
+                        // Define ripple parameters (you can tweak these for different looks)
+                        const rippleFrequency = 0.1;   // How tight the waves are
+                        const rippleSpeed = 4.0;       // How fast the waves travel outwards
+                        const rippleAmplitude = 15.0;  // The maximum height of the ripple effect
+
+                        // Calculate the vertical offset using a sine wave.
+                        // The wave's amplitude is driven by the overall audio level.
+                        // The phase is determined by the wall's distance from the center and the elapsed time.
+                        const rippleOffset = (audioLevel * rippleAmplitude) * Math.sin(rippleDistance * rippleFrequency - elapsedTime * rippleSpeed);
+
+                        // Apply the calculated offset to the wall's original Y position
+                        wall.position.y = wall.userData.originalY + rippleOffset;
+                    }
+                    // --- END OF NEW RIPPLE LOGIC ---
+
                 });
                 if(mazeData.floorMesh){
                     mazeData.floorMesh.material.color.setHSL(0, 0.1, 0.1 + bassLevel * 0.1);
@@ -1429,6 +1445,10 @@ function drawInstantPath(path, cellSize) {
                     if (wall.userData.originalVertices && wall.geometry.attributes.position.array[0] !== wall.userData.originalVertices[0]) {
                         wall.geometry.attributes.position.array.set(wall.userData.originalVertices);
                         wall.geometry.attributes.position.needsUpdate = true;
+                    }
+                    // Reset position if audio stops
+                    if (wall.userData.originalY !== undefined) {
+                        wall.position.y = wall.userData.originalY;
                     }
                     wall.material.color.set(varToHex(getCSSVariableValue('--text-secondary')));
                     wall.material.emissive.set(0x000000);
