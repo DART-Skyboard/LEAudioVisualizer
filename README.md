@@ -1,2 +1,6 @@
-# LEAudioVisualizer
-Audio Visualizer: orginial: [Filip Bronzer](https://codepen.io/filipz) | Lead Edge Integration by: (https://dart.ninja)
+# [gsap/threejs/inertia] ❍  Audio Visualizer with THREEJS - Challenge #2 / Entry 1
+
+A Pen created on CodePen.
+
+Original URL: [https://codepen.io/filipz/pen/yyyRgry](https://codepen.io/filipz/pen/yyyRgry).
+
